@@ -1,0 +1,17 @@
+?expr :  SIGNED_NUMBER -> num
+        | "true" -> true
+        | "false" -> false
+        | name 
+        | list
+        
+list  :   "(" "+" expr expr ")" -> add
+        | "(" "-" expr expr ")" -> sub
+        | "(" "let" "(" name expr ")"  expr ")" -> let
+        | "(" "if" expr expr expr ")" -> myif
+
+name  : CNAME -> var
+
+%import common.CNAME
+%import common.SIGNED_NUMBER
+%import common.WS
+%ignore WS
