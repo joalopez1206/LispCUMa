@@ -32,8 +32,6 @@ def interp(expr: Expr, env: Env) -> Val:
         case _:
             raise TypeError("Not defined!")
 
-def compile(expr: Expr):
-    ...
 
 def run(src: str) -> int:
     return interp(parse(src), Env([]))

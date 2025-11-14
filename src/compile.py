@@ -1,0 +1,3 @@
+from expr import Expr
+def compile(expr: Expr):
+    ...
