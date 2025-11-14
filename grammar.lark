@@ -8,6 +8,8 @@ list  :   "(" "+" expr expr ")" -> add
         | "(" "-" expr expr ")" -> sub
         | "(" "let" "(" name expr ")"  expr ")" -> let
         | "(" "if" expr expr expr ")" -> myif
+        | "(" "fun" "(" name+ ")" expr ")" -> fun
+        | "(" expr expr ")" -> app
 
 name  : CNAME -> var
 

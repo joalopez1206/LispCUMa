@@ -1,21 +1,13 @@
-from dataclasses import dataclass
-from lang import Expr, Add, Sub, Num, Bool,Let, Id, parse, Val, NumV, BoolV, If
-
-@dataclass
-class Env:
-    amb : list[tuple[str, Val]]
-
-def lookup(s :str, env: Env) -> Val :
-    match env.amb:
-        case []:
-            raise ValueError("Free Identifier!")
-        case [(x, e), *xs]:
-            return e if x==s else lookup(s, Env(xs)) 
+from lang import Fun, App, Expr, Add, Sub, Num, Bool, Id, parse, If
+from env import Val, NumV, BoolV, ClosureV
+from env import lookup, Env
 
 def interp(expr: Expr, env: Env) -> Val:
     match expr:
         case Id(x):
             return lookup(x, env)
+        case Fun(name, body):
+            return ClosureV(name, body, env)
         case Num(n):
             return NumV(n)
         case Bool(b):
@@ -24,15 +16,19 @@ def interp(expr: Expr, env: Env) -> Val:
             return interp(l, env) + interp(r, env)
         case Sub(l,r):
             return interp(l, env) - interp(r, env)
-        case Let(i, e, b):
-            v = interp(e, env)
-            new_env = Env([(i.name, v)] + env.amb)
-            return interp(b, new_env)
         case If(c, t, f):
             if interp(c, env) == BoolV(True):
                 return interp(t, env)
             else:
                 return interp(f, env)
+        case App(fexpr, argexpr):
+            closure = interp(fexpr, env)
+            if not isinstance(closure, ClosureV):
+                raise TypeError("Not a Closure!")
+            idx = closure.name
+            body = closure.body
+            fenv = closure.env
+            return interp(body, fenv.extend(idx.name, interp(argexpr, env)))
         case _:
             raise TypeError("Not defined!")
 
@@ -57,6 +53,12 @@ assert run ("(if false true false)") == BoolV(False)
 assert run ("(if true false true)") == BoolV(False)
 assert run ("(if false 1 (+ 1 2))") == NumV(3)
 assert run ("(if true (+ 1 2) 1)") == NumV(3)
+assert run("(fun (x) (+ 2 x))") == ClosureV(Id("x"), Add(Num(2), Id("x")), Env([]))
+assert run ("((fun (x) (+ 2 x)) 2)") == NumV(4)
+assert run("""(let 
+           (z (fun (y) (+ y 1)))
+           (x 100)
+           )""" )== NumV(101)
 
 try:
     run("(let (x y) x)")
