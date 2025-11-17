@@ -1,6 +1,6 @@
-from lang import Fun, App, Expr, Add, Sub, Num, Bool, Id, parse, If
-from env import Val, NumV, BoolV, ClosureV
-from env import lookup, Env
+from src.lang import Fun, App, Expr, Add, Sub, Num, Bool, Id, parse, If
+from src.env import Val, NumV, BoolV, ClosureV
+from src.env import lookup, Env
 
 def interp(expr: Expr, env: Env) -> Val:
     match expr:
@@ -13,9 +13,17 @@ def interp(expr: Expr, env: Env) -> Val:
         case Bool(b):
             return BoolV(b)
         case Add(l,r):
-            return interp(l, env) + interp(r, env)
+            match (interp(l, env),interp(r, env)):
+                case (NumV() as left, NumV() as right):
+                    return left+right
+                case _:
+                    raise TypeError("Not a Number!")
         case Sub(l,r):
-            return interp(l, env) - interp(r, env)
+            match (interp(l, env),interp(r, env)):
+                case (NumV() as left, NumV() as right):
+                    return left-right
+                case _:
+                    raise TypeError("Not a Number!")
         case If(c, t, f):
             if interp(c, env) == BoolV(True):
                 return interp(t, env)
@@ -33,33 +41,34 @@ def interp(expr: Expr, env: Env) -> Val:
             raise TypeError("Not defined!")
 
 
-def run(src: str) -> int:
+def run(src: str) -> Val:
     return interp(parse(src), Env([]))
-# "(let (x 1) x)"
+ 
 
-assert run("1") == NumV(1)
-assert run("(+ 1 2)") == NumV(3)
-assert run("(+ 1 (+ 2 3))") == NumV(6)
-assert run("(- 3 (+ 1 2))") == NumV(0)
-assert run("true") == BoolV(True)
-assert run("false") == BoolV(False)
-assert run("(let (x 1) x)") == NumV(1)
-assert run("(let (x (+ 1 1)) x)") == NumV(2)
-assert run ("(if true 1 2)") == NumV(1)
-assert run ("(if false 1 2)") == NumV(2)
-assert run ("(if false true false)") == BoolV(False)
-assert run ("(if true false true)") == BoolV(False)
-assert run ("(if false 1 (+ 1 2))") == NumV(3)
-assert run ("(if true (+ 1 2) 1)") == NumV(3)
-assert run("(fun (x) (+ 2 x))") == ClosureV(Id("x"), Add(Num(2), Id("x")), Env([]))
-assert run ("((fun (x) (+ 2 x)) 2)") == NumV(4)
-assert run("""(let 
-           (z (fun (y) (+ y 1)))
-           (x 100)
-           )""" )== NumV(101)
+if __name__ == "__main__":
+    assert run("1") == NumV(1)
+    assert run("(+ 1 2)") == NumV(3)
+    assert run("(+ 1 (+ 2 3))") == NumV(6)
+    assert run("(- 3 (+ 1 2))") == NumV(0)
+    assert run("true") == BoolV(True)
+    assert run("false") == BoolV(False)
+    assert run("(let (x 1) x)") == NumV(1)
+    assert run("(let (x (+ 1 1)) x)") == NumV(2)
+    assert run ("(if true 1 2)") == NumV(1)
+    assert run ("(if false 1 2)") == NumV(2)
+    assert run ("(if false true false)") == BoolV(False)
+    assert run ("(if true false true)") == BoolV(False)
+    assert run ("(if false 1 (+ 1 2))") == NumV(3)
+    assert run ("(if true (+ 1 2) 1)") == NumV(3)
+    assert run("(fun (x) (+ 2 x))") == ClosureV(Id("x"), Add(Num(2), Id("x")), Env([]))
+    assert run ("((fun (x) (+ 2 x)) 2)") == NumV(4)
+    assert run("""(let 
+               (z (fun (y) (+ y 1)))
+               (x 100)
+               )""") == NumV(101)
 
-try:
-    run("(let (x y) x)")
-except ValueError:
-    print("Test good!")
+    try:
+        run("(let (x y) x)")
+    except ValueError:
+        print("Test good!")
 
