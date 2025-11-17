@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from expr import Expr
+from src.expr import Expr
+from src.lang import Id
+from typing import Protocol
 
-class Val:
+class Val(Protocol):
     ...
 
 
@@ -9,16 +11,16 @@ class Val:
 class Env:
     env : list[tuple[str, Val]]
 
-    def extend(self, id, val) -> "Env":
+    def extend(self, id: str, val) -> "Env":
         return Env([(id, val)] + self.env)
     
 def lookup(s :str, env: Env) -> Val :
     match env.env:
-        case []:
-            raise ValueError("Free Identifier!")
         case [(x, e), *xs]:
             return e if x==s else lookup(s, Env(xs)) 
-
+        case [] | _:
+            raise ValueError("Free Identifier!")
+        
 @dataclass
 class NumV(Val):
     n: int
@@ -40,7 +42,7 @@ class BoolV(Val):
 
 @dataclass
 class ClosureV(Val):
-    name: str
+    name: Id
     body: Expr
     env: Env
 
