@@ -1,7 +1,8 @@
 from lark import Lark, Transformer
 from dataclasses import dataclass
-from expr import Expr
+from src.expr import Expr
 from pprint import pprint
+from typing import cast
 
 @dataclass
 class Num(Expr):
@@ -34,7 +35,7 @@ class If(Expr):
 
 @dataclass
 class Fun(Expr):
-    name: str
+    name: Id
     body: Expr
 
 @dataclass
@@ -81,18 +82,40 @@ class tran(Transformer):
     
 
 
-grammar = ""
+grammar = """?expr :  SIGNED_NUMBER -> num
+        | "true" -> true
+        | "false" -> false
+        | name 
+        | list
+        
+list  :   "(" "+" expr expr ")" -> add
+        | "(" "-" expr expr ")" -> sub
+        | "(" "let" "(" name expr ")"  expr ")" -> let
+        | "(" "if" expr expr expr ")" -> myif
+        | "(" "fun" "(" name+ ")" expr ")" -> fun
+        | "(" expr expr ")" -> app
 
-with open("grammar.lark", "r") as f:
-    grammar = f.read()
+name  : CNAME -> var
+
+%import common.CNAME
+%import common.SIGNED_NUMBER
+%import common.WS
+%ignore WS"""
 
 parser = Lark(grammar, start  = "expr", parser = "lalr", transformer = tran())
-parse = parser.parse
 
-pprint(parse("((fun (x) (+ 2 x)) 2)"))
-pprint(parse("(fun (x) (+ 2 x))"))
-pprint(parse("(let (x 1) x)"))
-pprint(parse("""(let 
-           (x (fun (y) (+ y 1)))
-           (x 100)
-           )"""))
+def parse(src: str) -> Expr:
+    # lark's stubs type parser.parse as returning a ParseTree even when a Transformer is supplied.
+    # We know the transformer returns an Expr, so cast to satisfy mypy.
+    return cast(Expr, parser.parse(src))
+
+
+#pprint(parse("((fun (x) (+ 2 x)) 2)"))
+
+
+#pprint(parse("(fun (x) (+ 2 x))"))
+#pprint(parse("(let (x 1) x)"))
+#pprint(parse("""(let 
+#        (x (fun (y) (+ y 1)))
+#        (x 100)
+#        )"""))
