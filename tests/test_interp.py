@@ -32,7 +32,29 @@ def test_functions_and_application():
                (x (fun (y) (+ y 1)))
                (x 100)
                )""") == NumV(101)
+    
+
+def test_shadowing():
+    assert run("""
+        (let (x 1)
+            (let (x 2)
+                x
+            )
+        )
+    """) == NumV(2)
 
 def test_invalid_lookup_raises():
     with pytest.raises(ValueError):
         run("(let (x y) x)")
+
+def test_invalid_if_condition_raises():
+    with pytest.raises(TypeError):
+        run("(if 1 2 3)")
+
+def test_invalid_addition_raises():
+    with pytest.raises(TypeError):
+        run("(+ true 1)")
+
+def test_invalid_subtraction_raises():
+    with pytest.raises(TypeError):
+        run("(- 1 false)")
