@@ -1,4 +1,4 @@
-from src.lang import Fun, App, Expr, Add, Sub, Num, Bool, Id, parse, If
+from src.lang import Add1, Fun, App, Expr, Add, Sub, Num, Bool, Id, Sub1, parse, If
 from src.env import Val, NumV, BoolV, ClosureV
 from src.env import lookup, Env
 
@@ -12,10 +12,22 @@ def interp_expr(expr: Expr, env: Env) -> Val:
             return NumV(n)
         case Bool(b):
             return BoolV(b)
+        case Add1(n):
+            match interp_expr(n, env):
+                case NumV(v):
+                    return NumV(v + 1)
+                case _:
+                    raise TypeError("Not a Number!")
         case Add(l,r):
             match (interp_expr(l, env),interp_expr(r, env)):
                 case (NumV() as left, NumV() as right):
                     return left+right
+                case _:
+                    raise TypeError("Not a Number!")
+        case Sub1(n):
+            match interp_expr(n, env):
+                case NumV(v):
+                    return NumV(v - 1)
                 case _:
                     raise TypeError("Not a Number!")
         case Sub(l,r):
