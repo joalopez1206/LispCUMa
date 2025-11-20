@@ -1,15 +1,20 @@
 from src.expr import Expr
-from typing import Protocol
-
-class Instructions(Protocol):
-    ...
-
-def compile_expr(expr: Expr, env: list) -> list[Instructions]:
-    return []
+from src.lang import Num, Add1
+from src.asm import Reg, Const, IMov, IAdd1
+from src.asm import instruction, pprint_instrs
 
 
-def pprint_instrs(instrs: list[Instructions]) -> str:
-    return "\tmov RAX, 0\n\tret"
+def compile_expr(expr: Expr, env: list) -> list[instruction]:
+    match expr:
+        case Num(n):
+            return [IMov(Reg.RAX, Const(n))]
+        case Add1(n):
+            return compile_expr(n, env) + [IAdd1(Reg.RAX)]
+        case _:
+            raise NotImplementedError(f"Compilation not implemented for {expr}")
+
+
+
 
 def compile(expr: Expr) -> str:
     instrs = compile_expr(expr, [])
