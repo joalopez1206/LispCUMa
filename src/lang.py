@@ -1,7 +1,6 @@
 from lark import Lark, Transformer
 from dataclasses import dataclass
 from src.expr import Expr
-from pprint import pprint
 from typing import cast
 
 @dataclass
@@ -43,7 +42,22 @@ class App(Expr):
     fn: Expr
     args: Expr
 
+@dataclass
+class Add1(Expr):
+    n: Expr
+
+@dataclass
+class Sub1(Expr):
+    n: Expr
+
 class tran(Transformer):
+
+    def add1(self, n):
+        return Add1(n[0])
+    
+    def sub1(self, n):
+        return Sub1(n[0])
+
     def name(self, n):
         return Id(n)
     
@@ -90,6 +104,8 @@ grammar = """?expr :  SIGNED_NUMBER -> num
         
 list  :   "(" "+" expr expr ")" -> add
         | "(" "-" expr expr ")" -> sub
+        | "(" "add1" expr ")" -> add1
+        | "(" "sub1" expr ")" -> sub1
         | "(" "let" "(" name expr ")"  expr ")" -> let
         | "(" "if" expr expr expr ")" -> myif
         | "(" "fun" "(" name+ ")" expr ")" -> fun
