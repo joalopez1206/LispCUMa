@@ -1,0 +1,51 @@
+from enum import auto, Enum
+from dataclasses import dataclass
+
+class Reg(Enum):
+    RAX = auto()
+
+@dataclass
+class Const:
+    value: int
+
+@dataclass
+class RegOffset:
+    offset: int
+    reg: Reg
+
+type arg = Const | Reg | RegOffset
+
+def arg_to_str(a: arg) -> str:
+    match a:
+        case Const(value):
+            return str(value)
+        case Reg() as reg:
+            return reg.name
+        case RegOffset(offset, reg):
+            return f"[{reg.name} - 8*{offset}]"
+        case _:
+            raise TypeError("Unknown arg type")
+
+class IRet:
+    def __str__(self) -> str:
+        return "  ret"
+
+@dataclass
+class IMov:
+    dst: arg
+    src: arg
+
+    def __str__(self) -> str:
+        return f"  mov {arg_to_str(self.dst)}, {arg_to_str(self.src)}"
+
+@dataclass
+class IAdd1:
+    dst: arg
+
+    def __str__(self) -> str:
+        return f"  add {arg_to_str(self.dst)}, 1"
+
+type instruction = IRet | IMov | IAdd1 
+
+def pprint_instrs(instrs: list[instruction]) -> str:
+    return "\n".join(str(instr) for instr in instrs)
