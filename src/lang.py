@@ -25,6 +25,11 @@ class Sub(Expr):
     l: Expr
     r: Expr
 
+@dataclass
+class Let(Expr):
+    var: Id
+    nexpr: Expr
+    body: Expr
 
 @dataclass
 class If(Expr):
@@ -80,7 +85,7 @@ class tran(Transformer):
         return Bool(False)
     
     def let(self, n):
-        return App(Fun(n[0], n[2]), n[1])
+        return Let(n[0], n[1], n[2])
     
     def myif(self,n):
         return If(n[0],n[1],n[2])
