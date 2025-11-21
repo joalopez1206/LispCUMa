@@ -58,3 +58,10 @@ def test_invalid_addition_raises():
 def test_invalid_subtraction_raises():
     with pytest.raises(TypeError):
         run("(- 1 false)")
+
+def test_invalid_lookup_lexical_scope():
+    with pytest.raises(ValueError):
+        run("""(let 
+            (y 
+                (let (x 1) x))
+             x)""")
