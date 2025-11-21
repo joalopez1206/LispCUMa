@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 class Reg(Enum):
     RAX = auto()
+    RSP = auto()
 
 @dataclass
 class Const:
@@ -10,8 +11,8 @@ class Const:
 
 @dataclass
 class RegOffset:
-    offset: int
     reg: Reg
+    offset: int
 
 type arg = Const | Reg | RegOffset
 
@@ -21,7 +22,7 @@ def arg_to_str(a: arg) -> str:
             return str(value)
         case Reg() as reg:
             return reg.name
-        case RegOffset(offset, reg):
+        case RegOffset(reg, offset):
             return f"[{reg.name} - 8*{offset}]"
         case _:
             raise TypeError("Unknown arg type")
@@ -44,6 +45,7 @@ class IAdd1:
 
     def __str__(self) -> str:
         return f"  add {arg_to_str(self.dst)}, 1"
+
 
 type instruction = IRet | IMov | IAdd1 
 
