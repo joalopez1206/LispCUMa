@@ -1,4 +1,4 @@
-from src.lang import Add1, Fun, App, Expr, Add, Sub, Num, Bool, Id, Sub1, parse, If
+from src.lang import Add1, Fun, App, Expr, Add, Sub, Num, Bool, Id, Sub1, parse, If, Let
 from src.env import Val, NumV, BoolV, ClosureV
 from src.env import lookup, Env
 
@@ -36,12 +36,16 @@ def interp_expr(expr: Expr, env: Env) -> Val:
                     return left-right
                 case _:
                     raise TypeError("Not a Number!")
+        case Let(i, e, b):
+            val = interp_expr(e, env)
+            new_env = env.extend(i.name, val)
+            return interp_expr(b, new_env)
         case If(c, t, f):
-            match interp_expr(c, env):
+            match val :=interp_expr(c, env):
                 case BoolV(b):
                     return interp_expr(t, env) if b else interp_expr(f, env)
                 case _:
-                    raise TypeError("Not a Boolean!")
+                    raise TypeError(f"{val} Not a Boolean!")
         case App(fexpr, argexpr):
             closure = interp_expr(fexpr, env)
             if not isinstance(closure, ClosureV):
