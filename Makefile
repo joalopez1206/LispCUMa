@@ -11,7 +11,7 @@ endif
 export CFLAGS ?= -target $(TARGET) -g
 
 PROGS := $(basename $(notdir $(wildcard progs/*.src)))
-
+PYTHON := .venv/bin/python3
 RUNS := $(addprefix progs/,$(addsuffix .run,$(PROGS)))
 
 .PHONY: all-progs
@@ -19,10 +19,10 @@ RUNS := $(addprefix progs/,$(addsuffix .run,$(PROGS)))
 all-progs: $(RUNS)
 
 compile-one: 
-	python3 -m exec.run_compile $(SRC) > $(basename $(SRC)).s
+	$(PYTHON) -m exec.run_compile $(SRC) > $(basename $(SRC)).s
 
 progs/%.s: progs/%.src
-	python3 -m exec.run_compile $< > $@
+	$(PYTHON) -m exec.run_compile $< > $@
 
 progs/%.o: progs/%.s
 	nasm -f $(BIN_FORMAT) -o $@ $<
