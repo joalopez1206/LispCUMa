@@ -1,15 +1,27 @@
 from src.expr import Expr
-from src.lang import Num, Add1, Let, Id
-from src.asm import Reg, Const, IMov, IAdd1, IRet, RegOffset
+from src.lang import Num, Add1, Let, Id, Add
+from src.asm import Reg, Const, IMov, IAdd1, IRet, RegOffset, IAdd
 from src.asm import instruction, pprint_instrs
-from dataclasses import dataclass
 
 
 type compEnv =  list[tuple[str, int]]
 
-def add(env: compEnv, name: str) -> compEnv:
-    i = len(env)
-    return [(name, i)] + env
+
+
+class Gensym:
+    def __init__(self, s: str):
+        self.s = s
+        self.i = 0
+    
+    def gen(self) -> str:
+        return f"{self.s}{self.i}"
+
+
+gensym = Gensym("x")
+
+def add(env: compEnv, name: str) -> tuple[compEnv, int]:
+    i = 1 + len(env)
+    return [(name, i)] + env, i
 
 def lookup(env: compEnv, s:str):
     match env:
@@ -27,10 +39,24 @@ def compile_expr(expr: Expr, env: compEnv) -> list[instruction]:
             return [IMov(Reg.RAX, Const(n))]
         case Add1(n):
             return compile_expr(n, env) + [IAdd1(Reg.RAX)]
+        case Add(l,r):
+            lsym = gensym.gen()
+            rsym = gensym.gen()
+            en1, loffset  = add(env,lsym)
+            en2, roffset = add(en1, rsym)
+
+
+            left_instr = compile_expr(l, en2)
+            lstack = [IMov(RegOffset(Reg.RSP, loffset), Reg.RAX)]
+            right_instr = compile_expr(r,en2)
+            rstack = [IMov(RegOffset(Reg.RSP, roffset), Reg.RAX)]
+            leave_res_in_rax = [IMov(Reg(Reg.RAX), RegOffset(Reg.RSP, loffset))]
+
+            return left_instr + lstack + right_instr + rstack + leave_res_in_rax + [IAdd(Reg.RAX, RegOffset(Reg.RSP, roffset))]
         case Let(var, nexpr, body):
-            nenv = add(env, var.name)
+            nenv, slot = add(env, var.name)
             instrs = compile_expr(nexpr, env)
-            return instrs + compile_expr(body, nenv)
+            return instrs + [IMov(RegOffset(Reg.RSP, slot), Reg.RAX)] + compile_expr(body, nenv)
         case _:
             raise NotImplementedError(f"Compilation not implemented for {expr}")
 

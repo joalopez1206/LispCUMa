@@ -32,6 +32,14 @@ class IRet:
         return "  ret"
 
 @dataclass
+class IAdd:
+    left: arg
+    right: arg
+
+    def __str__(self):
+        return f"  add {arg_to_str(self.left)} ,{arg_to_str(self.right)}"
+
+@dataclass
 class IMov:
     dst: arg
     src: arg
@@ -47,7 +55,7 @@ class IAdd1:
         return f"  add {arg_to_str(self.dst)}, 1"
 
 
-type instruction = IRet | IMov | IAdd1 
+type instruction = IRet | IMov | IAdd1 | IAdd 
 
 def pprint_instrs(instrs: list[instruction]) -> str:
     return "\n".join(str(instr) for instr in instrs)
