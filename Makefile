@@ -32,3 +32,6 @@ progs/%.run: progs/%.o rt/sys.c
 
 clean:
 	rm -f progs/*.s progs/*.o progs/*.run
+
+interp-one:
+	$(PYTHON) -m exec.run_interp $(SRC)
